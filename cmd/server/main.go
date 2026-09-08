@@ -18,13 +18,12 @@ func main() {
 
 	defer logger.Sync()
 
-	wsHandler := websocket.NewHandler(websocket.HandlerDeps{
+	websocketHandler := websocket.NewHandler(websocket.HandlerDeps{
 		Logger: logger,
 	})
 
 	router := http.NewRouter(http.RouterDeps{
-		WsHandler: wsHandler,
-		Logger:    logger,
+		WebSocketHandler: websocketHandler,
 	})
 
 	logger.Info("starting server", zap.String("addr", ":8080"))
