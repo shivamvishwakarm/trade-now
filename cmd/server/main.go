@@ -7,6 +7,7 @@ import (
 	"github.com/shivamvishwakarm/trade-now/internal/http"
 	"github.com/shivamvishwakarm/trade-now/internal/websocket"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func main() {
@@ -18,13 +19,15 @@ func main() {
 	}
 
 	defer logger.Sync()
+	passwordHasher := auth.NewBcryptPasswordHasher(bcrypt.DefaultCost)
 
 	websocketHandler := websocket.NewHandler(websocket.HandlerDeps{
 		Logger: logger,
 	})
 
 	authHandler := auth.NewHandler(auth.HandlerDeps{
-		Logger: logger,
+		Logger:         logger,
+		PasswordHasher: passwordHasher,
 	})
 
 	router := http.NewRouter(http.RouterDeps{

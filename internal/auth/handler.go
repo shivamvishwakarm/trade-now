@@ -12,7 +12,8 @@ type Handler struct {
 }
 
 type HandlerDeps struct {
-	Logger *zap.Logger
+	Logger         *zap.Logger
+	PasswordHasher PasswordHasher
 }
 
 func NewHandler(deps HandlerDeps) *Handler {
@@ -22,6 +23,19 @@ func NewHandler(deps HandlerDeps) *Handler {
 }
 
 func (H *Handler) Register(ctx *gin.Context) {
+
+	var req RegisterRequest
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		H.Logger.Warn(
+			"invalid registeration request",
+			zap.Error(err),
+		)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid request",
+		})
+		return
+	}
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "register not implemented",
