@@ -3,7 +3,7 @@ package auth
 import "github.com/google/uuid"
 
 type User struct {
-	ID           uuid.UUID
+	Id           uuid.UUID
 	Email        string
-	PasswordHash string
+	HashPassword string
 }

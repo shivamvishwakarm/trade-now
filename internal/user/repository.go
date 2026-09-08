@@ -3,10 +3,16 @@ package user
 import (
 	"context"
 
-	"github.com/shivamvishwakarm/trade-now/internal/auth"
+	"github.com/google/uuid"
 )
+
+type User struct {
+	ID           uuid.UUID
+	Email        string
+	PasswordHash string
+}
 
 type UserRepository interface {
 	ExistByEmail(ctx context.Context, email string) (bool, error)
-	CreateUser(ctx context.Context, user auth.User) error
+	CreateUser(ctx context.Context, user User) error
 }

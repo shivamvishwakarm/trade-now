@@ -8,27 +8,28 @@ import (
 )
 
 type Handler struct {
-	Logger *zap.Logger
+	Logger  *zap.Logger
+	Service *Service
 }
 
 type HandlerDeps struct {
-	Logger         *zap.Logger
-	PasswordHasher PasswordHasher
+	Logger  *zap.Logger
+	Service *Service
 }
 
 func NewHandler(deps HandlerDeps) *Handler {
 	return &Handler{
-		Logger: deps.Logger,
+		Logger:  deps.Logger,
+		Service: deps.Service,
 	}
 }
 
-func (H *Handler) Register(ctx *gin.Context) {
-
+func (h *Handler) Register(ctx *gin.Context) {
 	var req RegisterRequest
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		H.Logger.Warn(
-			"invalid registeration request",
+		h.Logger.Warn(
+			"invalid registraction request",
 			zap.Error(err),
 		)
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -37,25 +38,24 @@ func (H *Handler) Register(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "register not implemented",
+	if err := h.Service.Register(ctx, req); err != nil {
+		// err maping
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, RegisterResponse{
+		Message: "user registered successfully",
 	})
 }
 
-func (H *Handler) Login(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "login not implemnted",
-	})
+func (h *Handler) Login(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{"message": "login not implemented"})
 }
 
-func (H *Handler) Logout(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "logout not implemented",
-	})
+func (h *Handler) Logout(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{"message": "logout not implemented"})
 }
 
-func (H *Handler) Refresh(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{
-		"message": "refresh not implemented",
-	})
+func (h *Handler) Refresh(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, gin.H{"message": "refresh not implemented"})
 }
