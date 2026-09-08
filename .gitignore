@@ -1,25 +1,34 @@
 read.md
 
-# Binaries for programs and plugins
+# Go build artifacts
+/bin/
+/tmp/
+tmp/
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
 
-# Test binary, built with `go test -c`
+# Test binaries and coverage output
 *.test
-
-# Output of the go coverage tool
 *.out
+coverage.out
 
-# Dependency directories (if using go mod, vendor is usually ignored)
-# vendor/
-
-# Go workspace file
+# Go workspace files
 go.work
+go.work.sum
 
-# IDE files (optional, based on your editor)
+# Local environment files
+.env
+.env.*
+
+# Air / local runtime temp files
+*.log
+
+# OS and editor metadata
+.DS_Store
+Thumbs.db
 .idea/
 *.iml
-.vscode/   
+.vscode/

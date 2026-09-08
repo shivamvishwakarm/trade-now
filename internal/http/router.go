@@ -2,11 +2,13 @@ package http
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/shivamvishwakarm/trade-now/internal/auth"
 	"github.com/shivamvishwakarm/trade-now/internal/websocket"
 )
 
 type RouterDeps struct {
 	WebSocketHandler *websocket.Handler
+	AuthHandler      *auth.Handler
 }
 
 func NewRouter(deps RouterDeps) *gin.Engine {
@@ -15,10 +17,11 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 
 	router.Use(gin.Recovery())
 
-	registerHealthRoute(router)
+	registerHealthRoutes(router)
 
-	registerWebsocketRoute(router, deps)
+	registerWebSocketRoutes(router, deps)
+
+	registerAuthRoutes(router, deps)
 
 	return router
-
 }
