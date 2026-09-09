@@ -39,7 +39,14 @@ func (h *Handler) Register(ctx *gin.Context) {
 	}
 
 	if err := h.Service.Register(ctx, req); err != nil {
-		// err maping
+		switch err {
+		case ErrInvalidEmail, ErrInvalidPassword:
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		case ErrEmailExists:
+			ctx.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		}
 		return
 	}
 
@@ -66,7 +73,13 @@ func (h *Handler) Login(ctx *gin.Context) {
 	user, err := h.Service.Login(ctx, req)
 
 	if err != nil {
-		//
+		switch err {
+		case ErrInvalidEmail, ErrInvalidPassword:
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		default:
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		}
+		return
 	}
 
 	ctx.JSON(http.StatusOK, LoginResponse{

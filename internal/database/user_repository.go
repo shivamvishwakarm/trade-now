@@ -72,11 +72,12 @@ func (r *UserRepository) GetByEmail(
 ) (auth.User, error) {
 
 	const query = `
-		SELECT name, email, password_hash FROM users WHERE email = $1
+		SELECT id, name, email, password_hash FROM users WHERE email = $1
 	`
 	var user auth.User
 
 	err := r.db.QueryRowContext(ctx, query, email).Scan(
+		&user.ID,
 		&user.Name,
 		&user.Email,
 		&user.HashPassword,
