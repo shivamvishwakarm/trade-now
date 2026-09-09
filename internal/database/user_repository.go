@@ -48,8 +48,8 @@ func (r *UserRepository) Create(
 ) error {
 	const query = `
 		INSERT INTO users (
-			id,
 			email,
+			name,
 			password_hash
 		)
 		VALUES ($1, $2, $3)
@@ -58,10 +58,33 @@ func (r *UserRepository) Create(
 	_, err := r.db.ExecContext(
 		ctx,
 		query,
-		u.Id,
 		u.Email,
+		u.Name,
 		u.HashPassword,
 	)
 
 	return err
+}
+
+func (r *UserRepository) GetByEmail(
+	ctx context.Context,
+	email string,
+) (auth.User, error) {
+
+	const query = `
+		SELECT name, email, password_hash FROM users WHERE email = $1
+	`
+	var user auth.User
+
+	err := r.db.QueryRowContext(ctx, query, email).Scan(
+		&user.Name,
+		&user.Email,
+		&user.HashPassword,
+	)
+
+	if err != nil {
+		return auth.User{}, err
+	}
+
+	return user, nil
 }

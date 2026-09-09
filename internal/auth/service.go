@@ -5,7 +5,6 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/google/uuid"
 	"go.uber.org/zap"
 )
 
@@ -72,7 +71,7 @@ func (s *Service) Register(
 	}
 
 	user := User{
-		Id:           uuid.New(),
+		Name:         req.Name,
 		Email:        email,
 		HashPassword: passwordHash,
 	}
@@ -86,4 +85,33 @@ func (s *Service) Register(
 	}
 
 	return nil
+}
+
+func (s *Service) Login(ctx context.Context, req LoginRequest) (User, error) {
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+
+	if email == "" {
+		return User{}, ErrInvalidEmail
+	}
+
+	if req.Password == "" {
+		return User{}, ErrInvalidPassword
+	}
+
+	user, err := s.userRepo.GetByEmail(ctx, email)
+	if err != nil {
+		s.logger.Error(
+			"failed to get user by email",
+			zap.Error(err),
+		)
+
+		return User{}, err
+	}
+
+	if err := s.passwordHasher.Compare(user.HashPassword, req.Password); err != nil {
+		return User{}, ErrInvalidPassword
+	}
+
+	return user, nil
+
 }

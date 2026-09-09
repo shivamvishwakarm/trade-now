@@ -49,7 +49,30 @@ func (h *Handler) Register(ctx *gin.Context) {
 }
 
 func (h *Handler) Login(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, gin.H{"message": "login not implemented"})
+
+	var req LoginRequest
+
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		h.Logger.Warn(
+			"invalid login request",
+			zap.Error(err),
+		)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid request",
+		})
+		return
+	}
+
+	user, err := h.Service.Login(ctx, req)
+
+	if err != nil {
+		//
+	}
+
+	ctx.JSON(http.StatusOK, LoginResponse{
+		Email: user.Email,
+		Name:  user.Name,
+	})
 }
 
 func (h *Handler) Logout(ctx *gin.Context) {

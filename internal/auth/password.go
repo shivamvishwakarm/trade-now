@@ -7,6 +7,7 @@ import (
 
 type PasswordHasher interface {
 	Hash(password string) (string, error)
+	Compare(hashedPassword, plainPassword string) error
 }
 
 func PasswordStrengthCheck(password string) (string, string) {
