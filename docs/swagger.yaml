@@ -1,0 +1,204 @@
+basePath: /
+definitions:
+  auth.ErrorResponse:
+    properties:
+      error:
+        example: something went wrong
+        type: string
+    type: object
+  auth.LoginRequest:
+    properties:
+      email:
+        example: alice@example.com
+        type: string
+      password:
+        example: s3cr3tP@ssw0rd
+        type: string
+    type: object
+  auth.LoginResponse:
+    properties:
+      email:
+        example: alice@example.com
+        type: string
+      id:
+        example: 42
+        type: integer
+      name:
+        example: Alice Smith
+        type: string
+    type: object
+  auth.MessageResponse:
+    properties:
+      message:
+        example: operation successful
+        type: string
+    type: object
+  auth.RegisterRequest:
+    properties:
+      email:
+        example: alice@example.com
+        type: string
+      name:
+        example: Alice Smith
+        type: string
+      password:
+        example: s3cr3tP@ssw0rd
+        type: string
+    type: object
+  auth.RegisterResponse:
+    properties:
+      message:
+        example: user registered successfully
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@trade-now.dev
+    name: Trade Now Support
+  description: REST API for the Trade Now application. Handles authentication and
+    real-time WebSocket connectivity.
+  title: Trade Now API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 'Authenticates a user with email and password. On success, sets
+        two HttpOnly cookies: `access_token` (path `/`) and `refresh_token` (path
+        `/auth/refresh`). The raw tokens are never returned in the response body.'
+      parameters:
+      - description: Login credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.LoginResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "401":
+          description: Invalid email or password
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Log in
+      tags:
+      - auth
+  /auth/logout:
+    post:
+      description: Revokes the current refresh token (best-effort DB deletion) and
+        clears both `access_token` and `refresh_token` cookies by setting their MaxAge
+        to -1. Always returns 200 — even if no cookie was present.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logged out successfully
+          schema:
+            $ref: '#/definitions/auth.MessageResponse'
+      security:
+      - RefreshTokenCookie: []
+      summary: Log out
+      tags:
+      - auth
+  /auth/refresh:
+    post:
+      description: Rotates the token pair. Reads the `refresh_token` HttpOnly cookie,
+        validates it, deletes the old token from the database, and issues a fresh
+        access + refresh token pair (stored as cookies). The old refresh token is
+        invalidated immediately.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Tokens refreshed successfully
+          schema:
+            $ref: '#/definitions/auth.MessageResponse'
+        "401":
+          description: Refresh token missing, invalid, or expired
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      security:
+      - RefreshTokenCookie: []
+      summary: Refresh access token
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new user account. The email is normalised (lowercased
+        + trimmed) before storage. Passwords are hashed with bcrypt.
+      parameters:
+      - description: Registration payload
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/auth.RegisterResponse'
+        "400":
+          description: Invalid request body or missing required fields
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "409":
+          description: A user with that email already exists
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/auth.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - auth
+  /health:
+    get:
+      description: Returns the current server status and UTC timestamp. Use this to
+        confirm the API is reachable.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: status ok
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Health check
+      tags:
+      - system
+securityDefinitions:
+  AccessTokenCookie:
+    description: JWT access token stored as an HttpOnly cookie.
+    in: cookie
+    name: access_token
+    type: apiKey
+  RefreshTokenCookie:
+    description: JWT refresh token stored as an HttpOnly cookie (only sent to /auth/refresh).
+    in: cookie
+    name: refresh_token
+    type: apiKey
+swagger: "2.0"

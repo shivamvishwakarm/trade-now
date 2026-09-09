@@ -30,6 +30,19 @@ func NewHandler(deps HandlerDeps) *Handler {
 	}
 }
 
+// Register godoc
+//
+//	@Summary		Register a new user
+//	@Description	Creates a new user account. The email is normalised (lowercased + trimmed) before storage. Passwords are hashed with bcrypt.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		RegisterRequest	true	"Registration payload"
+//	@Success		201		{object}	RegisterResponse
+//	@Failure		400		{object}	ErrorResponse	"Invalid request body or missing required fields"
+//	@Failure		409		{object}	ErrorResponse	"A user with that email already exists"
+//	@Failure		500		{object}	ErrorResponse	"Internal server error"
+//	@Router			/auth/register [post]
 func (h *Handler) Register(ctx *gin.Context) {
 	var req RegisterRequest
 
@@ -54,6 +67,19 @@ func (h *Handler) Register(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, RegisterResponse{Message: "user registered successfully"})
 }
 
+// Login godoc
+//
+//	@Summary		Log in
+//	@Description	Authenticates a user with email and password. On success, sets two HttpOnly cookies: `access_token` (path `/`) and `refresh_token` (path `/auth/refresh`). The raw tokens are never returned in the response body.
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			body	body		LoginRequest	true	"Login credentials"
+//	@Success		200		{object}	LoginResponse
+//	@Failure		400		{object}	ErrorResponse	"Invalid request body"
+//	@Failure		401		{object}	ErrorResponse	"Invalid email or password"
+//	@Failure		500		{object}	ErrorResponse	"Internal server error"
+//	@Router			/auth/login [post]
 func (h *Handler) Login(ctx *gin.Context) {
 	var req LoginRequest
 
@@ -83,6 +109,17 @@ func (h *Handler) Login(ctx *gin.Context) {
 	})
 }
 
+// Refresh godoc
+//
+//	@Summary		Refresh access token
+//	@Description	Rotates the token pair. Reads the `refresh_token` HttpOnly cookie, validates it, deletes the old token from the database, and issues a fresh access + refresh token pair (stored as cookies). The old refresh token is invalidated immediately.
+//	@Tags			auth
+//	@Produce		json
+//	@Success		200	{object}	MessageResponse	"Tokens refreshed successfully"
+//	@Failure		401	{object}	ErrorResponse	"Refresh token missing, invalid, or expired"
+//	@Failure		500	{object}	ErrorResponse	"Internal server error"
+//	@Security		RefreshTokenCookie
+//	@Router			/auth/refresh [post]
 func (h *Handler) Refresh(ctx *gin.Context) {
 	rawToken, err := ctx.Cookie(refreshTokenCookie)
 	if err != nil {
@@ -106,6 +143,15 @@ func (h *Handler) Refresh(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "tokens refreshed"})
 }
 
+// Logout godoc
+//
+//	@Summary		Log out
+//	@Description	Revokes the current refresh token (best-effort DB deletion) and clears both `access_token` and `refresh_token` cookies by setting their MaxAge to -1. Always returns 200 — even if no cookie was present.
+//	@Tags			auth
+//	@Produce		json
+//	@Success		200	{object}	MessageResponse	"Logged out successfully"
+//	@Security		RefreshTokenCookie
+//	@Router			/auth/logout [post]
 func (h *Handler) Logout(ctx *gin.Context) {
 	rawToken, err := ctx.Cookie(refreshTokenCookie)
 	if err == nil {

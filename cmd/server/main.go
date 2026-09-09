@@ -1,9 +1,30 @@
+// @title           Trade Now API
+// @version         1.0
+// @description     REST API for the Trade Now application. Handles authentication and real-time WebSocket connectivity.
+
+// @contact.name    Trade Now Support
+// @contact.email   support@trade-now.dev
+
+// @host      localhost:8080
+// @BasePath  /
+
+// @securityDefinitions.apikey  AccessTokenCookie
+// @in                          cookie
+// @name                        access_token
+// @description                 JWT access token stored as an HttpOnly cookie.
+
+// @securityDefinitions.apikey  RefreshTokenCookie
+// @in                          cookie
+// @name                        refresh_token
+// @description                 JWT refresh token stored as an HttpOnly cookie (only sent to /auth/refresh).
+
 package main
 
 import (
 	"fmt"
 	"log"
 
+	_ "github.com/shivamvishwakarm/trade-now/docs"
 	"github.com/shivamvishwakarm/trade-now/internal/auth"
 	"github.com/shivamvishwakarm/trade-now/internal/config"
 	"github.com/shivamvishwakarm/trade-now/internal/database"
