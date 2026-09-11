@@ -119,3 +119,18 @@ func (r *UserProfileRepository) GetByEmail(
 	u.Id = fmt.Sprintf("%d", id)
 	return u, nil
 }
+
+func (r *UserProfileRepository) GetById(ctx context.Context, id string) (user.Profile, error) {
+
+	const query = `SELECT id, name,email FROM users WHERE id = $1`
+
+	var u user.Profile
+
+	err := r.db.QueryRowContext(ctx, query, id).Scan(&id, &u.Name, &u.Email)
+
+	if err != nil {
+		return user.Profile{}, err
+	}
+
+	return u, nil
+}

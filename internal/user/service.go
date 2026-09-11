@@ -42,9 +42,9 @@ func (s *Service) GetProfile(ctx *gin.Context) (Profile, error) {
 		return Profile{}, ErrInvalidToken
 	}
 
-	email := claims.Email
+	id := claims.ID
 
-	user, err := s.userRepo.GetByEmail(ctx, email)
+	user, err := s.userRepo.GetById(ctx, id)
 	if err != nil {
 		s.logger.Error("failed to get user by email")
 		return Profile{}, ErrUserNotExist
