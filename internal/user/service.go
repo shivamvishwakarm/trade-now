@@ -1,9 +1,9 @@
 package user
 
 import (
+	"context"
 	"errors"
 
-	"github.com/gin-gonic/gin"
 	"github.com/shivamvishwakarm/trade-now/internal/auth"
 
 	"go.uber.org/zap"
@@ -32,13 +32,12 @@ var (
 )
 
 // GetProfile returns the profile for the authenticated user.
-// TODO: implement
-func (s *Service) GetProfile(ctx *gin.Context) (Profile, error) {
+func (s *Service) GetProfile(ctx context.Context) (Profile, error) {
 
 	claims, ok := auth.ClaimsFromContext(ctx)
 
 	if !ok {
-		s.logger.Error("Can't get claims from context")
+		s.logger.Error("failed to get auth claims from context")
 		return Profile{}, ErrInvalidToken
 	}
 
@@ -46,13 +45,17 @@ func (s *Service) GetProfile(ctx *gin.Context) (Profile, error) {
 
 	user, err := s.userRepo.GetById(ctx, id)
 	if err != nil {
-		s.logger.Error("failed to get user by email")
-		return Profile{}, ErrUserNotExist
+		s.logger.Error(
+			"failed to get user by ID",
+			zap.Error(err),
+		)
+
+		return Profile{}, err
 	}
 
 	return Profile{
+		Id:    user.Id,
 		Name:  user.Name,
 		Email: user.Name,
-		Id:    user.Id,
 	}, nil
 }

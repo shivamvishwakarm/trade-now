@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -87,11 +88,14 @@ const ClaimsContextKey = "claims"
 
 // ClaimsFromContext retrieves the authenticated *Claims injected by the RequireAuth middleware.
 // Returns nil, false if the middleware was not applied or the key is missing.
-func ClaimsFromContext(ctx interface{ Get(any) (any, bool) }) (*Claims, bool) {
-	val, exists := ctx.Get(ClaimsContextKey)
-	if !exists {
+func ClaimsFromContext(ctx context.Context) (*Claims, bool) {
+
+	val := ctx.Value(ClaimsContextKey)
+
+	if val == nil {
 		return nil, false
 	}
+
 	claims, ok := val.(*Claims)
 	return claims, ok
 }
