@@ -3,8 +3,10 @@ package database
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/shivamvishwakarm/trade-now/internal/auth"
+	"github.com/shivamvishwakarm/trade-now/internal/user"
 )
 
 type UserRepository struct {
@@ -74,18 +76,46 @@ func (r *UserRepository) GetByEmail(
 	const query = `
 		SELECT id, name, email, password_hash FROM users WHERE email = $1
 	`
-	var user auth.User
+	var u auth.User
 
 	err := r.db.QueryRowContext(ctx, query, email).Scan(
-		&user.ID,
-		&user.Name,
-		&user.Email,
-		&user.HashPassword,
+		&u.ID,
+		&u.Name,
+		&u.Email,
+		&u.HashPassword,
 	)
 
 	if err != nil {
 		return auth.User{}, err
 	}
 
-	return user, nil
+	return u, nil
+}
+
+// UserProfileRepository implements user.UserRepository, returning the public
+// user.User type (no sensitive fields like password hash).
+type UserProfileRepository struct {
+	db *sql.DB
+}
+
+func NewUserProfileRepository(db *sql.DB) *UserProfileRepository {
+	return &UserProfileRepository{db: db}
+}
+
+func (r *UserProfileRepository) GetByEmail(
+	ctx context.Context,
+	email string,
+) (user.User, error) {
+	const query = `SELECT id, name, email FROM users WHERE email = $1`
+
+	var u user.User
+	var id int64
+
+	err := r.db.QueryRowContext(ctx, query, email).Scan(&id, &u.Name, &u.Email)
+	if err != nil {
+		return user.User{}, err
+	}
+
+	u.Id = fmt.Sprintf("%d", id)
+	return u, nil
 }

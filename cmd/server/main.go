@@ -29,6 +29,7 @@ import (
 	"github.com/shivamvishwakarm/trade-now/internal/config"
 	"github.com/shivamvishwakarm/trade-now/internal/database"
 	"github.com/shivamvishwakarm/trade-now/internal/http"
+	"github.com/shivamvishwakarm/trade-now/internal/user"
 	"github.com/shivamvishwakarm/trade-now/internal/websocket"
 
 	"go.uber.org/zap"
@@ -65,6 +66,7 @@ func main() {
 
 	// Repositories
 	userRepository := database.NewUserRepository(db)
+	userProfileRepository := database.NewUserProfileRepository(db)
 	tokenRepository := database.NewTokenRepository(db)
 
 	// Dependencies
@@ -81,6 +83,11 @@ func main() {
 		RefreshExpiry:  cfg.JWT.RefreshTokenExpiry,
 	})
 
+	userService := user.NewService(user.ServiceDeps{
+		Logger:   logger,
+		UserRepo: userProfileRepository,
+	})
+
 	// Handlers
 	websocketHandler := websocket.NewHandler(websocket.HandlerDeps{Logger: logger})
 	authHandler := auth.NewHandler(auth.HandlerDeps{
@@ -88,10 +95,17 @@ func main() {
 		Service: authService,
 	})
 
+	userHandler := user.NewHandler(user.HandlerDeps{
+		Logger:  logger,
+		Service: userService,
+	})
+
 	// Router
 	router := http.NewRouter(http.RouterDeps{
 		WebSocketHandler: websocketHandler,
 		AuthHandler:      authHandler,
+		UserHandler:      userHandler,
+		AccessSecret:     cfg.JWT.AccessSecret,
 	})
 
 	logger.Info("starting server", zap.String("addr", ":8080"))

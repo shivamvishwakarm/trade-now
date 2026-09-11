@@ -81,3 +81,17 @@ func generateToken(userID int64, email, secret string, expiry time.Duration) (st
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))
 }
+
+// ClaimsContextKey is the Gin context key under which authenticated claims are stored by RequireAuth.
+const ClaimsContextKey = "claims"
+
+// ClaimsFromContext retrieves the authenticated *Claims injected by the RequireAuth middleware.
+// Returns nil, false if the middleware was not applied or the key is missing.
+func ClaimsFromContext(ctx interface{ Get(any) (any, bool) }) (*Claims, bool) {
+	val, exists := ctx.Get(ClaimsContextKey)
+	if !exists {
+		return nil, false
+	}
+	claims, ok := val.(*Claims)
+	return claims, ok
+}

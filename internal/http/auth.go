@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func registerAuthRoutes(router *gin.Engine, deps RouterDeps) {
+func registerAuthRoutes(router *gin.RouterGroup, deps RouterDeps) {
 
 	authRouter := router.Group("/auth")
 	authRouter.POST("/register", deps.AuthHandler.Register)
