@@ -51,6 +51,22 @@ definitions:
         example: user registered successfully
         type: string
     type: object
+  user.ErrorResponse:
+    properties:
+      error:
+        example: something went wrong
+        type: string
+    type: object
+  user.Profile:
+    properties:
+      email:
+        description: 'TODO: add fields'
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -61,6 +77,29 @@ info:
   title: Trade Now API
   version: "1.0"
 paths:
+  /api/v1/me:
+    get:
+      description: Returns the profile of the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.Profile'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/user.ErrorResponse'
+      security:
+      - AccessTokenCookie: []
+      summary: Get current user profile
+      tags:
+      - user
   /auth/login:
     post:
       consumes:

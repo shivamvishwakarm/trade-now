@@ -105,15 +105,15 @@ func NewUserProfileRepository(db *sql.DB) *UserProfileRepository {
 func (r *UserProfileRepository) GetByEmail(
 	ctx context.Context,
 	email string,
-) (user.User, error) {
+) (user.Profile, error) {
 	const query = `SELECT id, name, email FROM users WHERE email = $1`
 
-	var u user.User
+	var u user.Profile
 	var id int64
 
 	err := r.db.QueryRowContext(ctx, query, email).Scan(&id, &u.Name, &u.Email)
 	if err != nil {
-		return user.User{}, err
+		return user.Profile{}, err
 	}
 
 	u.Id = fmt.Sprintf("%d", id)

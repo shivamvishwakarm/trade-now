@@ -4,6 +4,7 @@ read.md
 /bin/
 /tmp/
 tmp/
+/trade-now
 *.exe
 *.exe~
 *.dll
